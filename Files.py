@@ -14,7 +14,7 @@ def get_list(dir_path, save_patch):
     # 转移到本项目所在文件夹
     os.chdir(save_patch)
     # 后期可以优化更改文件名
-    with open("1.4代理经销、分销合同.txt", 'w', encoding='utf-8') as fp:
+    with open("合同名.txt", 'w', encoding='utf-8') as fp:
         for i in range(len(dir_files)):
             fp.write(dir_files[i] + '\n')
     # fp = open("dir_files.txt", 'w')
@@ -22,7 +22,7 @@ def get_list(dir_path, save_patch):
 
 
 if __name__ == "__main__":
-    dir_patch = r"C:\Users\Administrator\Desktop\报告\文本分类\分类训练样例\1.4代理经销、分销合同"
+    dir_patch = r"../data"
     # dir_patch = r"C:\Users\Administrator\Desktop\报告\文本分类\分类训练样例\1.2一般商品买卖合同"
     # 获得当前位置
     save_patch = os.getcwd()

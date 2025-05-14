@@ -9,7 +9,7 @@ import re  # 正则表达
 from torchtext.legacy import data
 import jieba
 import logging
-from torchtext.vocab import Vectors
+# from torchtext.vocab import Vectors
 import config
 import torch
 import random
@@ -21,16 +21,20 @@ import matplotlib.pyplot as plt
 
 jieba.setLogLevel(logging.INFO)  # 为了不显示错误信息
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+# 含义是匹配除中文字符、英文字母和数字之外的任意字符。
 regex = re.compile(r'[^\u4e00-\u9fa5aA-Za-z0-9]')
 
 
 def word_cut(text):
+    # 把输入文本里除中文字符、英文字母和数字之外的字符都替换成空格
+    # 这样能清理文本，减少不必要的字符对后续分词的影响。
     text = regex.sub(' ', text)
     return [word for word in jieba.cut(text) if word.strip()]
 
 
 def get_dataset(corpus_path, text_field, label_field, datatype):
     """
+    打标签
     构建torchtext数据集
     :param corpus_path: 数据路径
     :param text_field: torchtext设置的文本域
@@ -67,6 +71,7 @@ def Dataloader():
     # 文本内容，tokenize设置一个tokenize分词器给Field用,使用自定义的分词方法，将内容转换为小写，设置最大长度等
     # TEXT = data.Field(tokenize=jieba.lcut, lower=True, fix_length=config.MAX_SENTENCE_SIZE, batch_first=True)
     # 通过Field把文本数据转化为tensor类型，可处理
+    # 对象定义了文本数据的处理流程，包括分词、固定长度和批量数据的维度顺序
     TEXT = data.Field(sequential=True, tokenize=word_cut, fix_length=config.MAX_SENTENCE_SIZE,
                       batch_first=True)
     # 文本对应的标签
@@ -103,11 +108,14 @@ def Dataloader():
     def load_dataset(train_data, test_data, TEXT, LABEL, args1, **kwargs):
         if args1.static and config.pretrained_name and args1.pretrained_path:
             # vectors = load_word_vectors(args1.pretrained_name, args1.pretrained_path)
+            # 构建词汇表并加载预训练词向量
             TEXT.build_vocab(train_data, test_data, vectors='glove.6B.300d')
         else:
             # TEXT.build_vocab(train_data, test_data)
             TEXT.build_vocab(train_data)
         LABEL.build_vocab(train_data)
+        # BucketIterator会把长度相近的样本放在同一个批次，减少填充操作，提升计算效率。若sort设置为
+        # True，虽然能进一步减少填充，但可能会打乱数据顺序，影响模型训练。
         train_iterator, test_iterator = data.BucketIterator.splits((train_data, test_data),
                                                                    batch_size=config.BATCH_SIZE,
                                                                    sort=False)
